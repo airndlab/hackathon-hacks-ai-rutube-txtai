@@ -1,4 +1,4 @@
-FROM python:3.11 as requirements-stage
+FROM neuml/txtai-cpu:6.2.0 as requirements-stage
 
 WORKDIR /tmp
 
@@ -8,7 +8,7 @@ COPY ./pyproject.toml ./poetry.lock* /tmp/
 
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-FROM python:3.11-alpine
+FROM neuml/txtai-cpu:6.2.0
 
 WORKDIR /code
 
