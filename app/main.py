@@ -1,17 +1,20 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 
-from app import logic
+from app import index
 
 app = FastAPI()
 
 
 @app.get("/")
-async def root():
+async def status():
     return {"status": "UP"}
 
 
-# TODO: Remove
-@app.get("/api/logics")
-async def root():
-    result = logic.do_logic()
-    return {"result": result}
+class SearchRequest(BaseModel):
+    query: str
+
+
+@app.post("/search")
+async def root(search_request: SearchRequest):
+    return {"results": index.search(search_request.query)}
