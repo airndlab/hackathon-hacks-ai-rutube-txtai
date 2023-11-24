@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "appName"
+name = "txtai-service"
 version = "0.1.0"
-description = "appDescription"
+description = "Search by txtAI"
 license = "Apache-2.0"
 authors = ["AI RnD Lab Developers"]
 readme = "README.md"
