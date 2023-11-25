@@ -1,6 +1,6 @@
 # txtai
 
-Search by txtAI.
+Search by [txtAI](https://github.com/neuml/txtai).
 
 ## Development
 
