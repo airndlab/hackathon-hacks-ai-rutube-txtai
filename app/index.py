@@ -36,10 +36,31 @@ logger.info('finished loading autocomplete_quieries.json')
 
 nltk.download('popular')
 
+en_to_ru_mapping = {
+    'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г',
+    'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х', ']': 'ъ', 'a': 'ф', 's': 'ы',
+    'd': 'в', 'f': 'а', 'g': 'п', 'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д',
+    ';': 'ж', "'": 'э', 'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и',
+    'n': 'т', 'm': 'ь', ',': 'б', '.': 'ю', '/': '.', '`': 'ё',
+}
+ru_to_en_mapping = {v: k for k, v in en_to_ru_mapping.items()}
+
+
+def detect_and_correct_layout(query):
+    if any(char in en_to_ru_mapping for char in query):
+        result = ''.join(en_to_ru_mapping.get(ch, ch) for ch in query)
+        logger.info(f'fix layout: query={query}, result={result}')
+        return result
+    elif any(char in ru_to_en_mapping for char in query):
+        result = ''.join(ru_to_en_mapping.get(ch, ch) for ch in query)
+        logger.info(f'fix layout: query={query}, result={result}')
+        return result
+    return query
+
 
 def clean_query(query: str):
     query = re.sub("[^а-яА-ЯЁё0-9a-zA-Z ]", "", query)
-    query = re.sub(r'[^\w\s]', '', query.lower())
+    query = re.sub(r'[^\w\s]', '', query)
     tokens = nltk.word_tokenize(query)
     tokens = [word for word in tokens if word not in stopwords.words('russian')]
     result = ' '.join(tokens)
@@ -47,8 +68,14 @@ def clean_query(query: str):
     return result
 
 
+def prepare_query(query: str):
+    query_in_lower = query.lower()
+    query_in_correct_layout = detect_and_correct_layout(query_in_lower)
+    return clean_query(query_in_correct_layout)
+
+
 def search_videos(query: str, limit: int = 10):
-    query = clean_query(query)
+    query = prepare_query(query)
     results = video_emb.search(
         f'select id, text, v_year_views, v_pub_datetime, score from txtai where similar("{query}") order by score desc, v_pub_datetime desc limit {limit}')
     logger.info(f'search videos: query={query}, limit={limit}, results={results}')
@@ -61,7 +88,7 @@ def search_videos(query: str, limit: int = 10):
 
 
 def search_channels(query: str, limit: int = 10):
-    query = clean_query(query)
+    query = prepare_query(query)
     results = channel_emb.search(
         f'select text, v_channel_type, score from txtai where similar("{query}") order by score desc limit {limit}'
     )
@@ -73,6 +100,7 @@ def search_channels(query: str, limit: int = 10):
 
 
 def search_suggests(query: str, max_cost: int, limit: int):
+    query = detect_and_correct_layout(query.lower())
     results = autocomplete.search(word=query, max_cost=max_cost, size=limit)
     logger.info(f'search suggests: query={query}, max_cost={max_cost}, limit={limit}, results={results}')
     return results
