@@ -9,6 +9,7 @@ from nltk.corpus import stopwords
 
 logger = logging.getLogger(__name__)
 
+# keyword index of videos
 video_emb = txtai.Embeddings()
 logger.info('start loading video_index')
 video_emb.load('./video_index')
@@ -17,6 +18,16 @@ config = video_emb.config.copy()
 config.pop('ids', None)
 logger.info(json.dumps(config, sort_keys=True, default=str, indent=2))
 
+# semantic index of videos
+video_semantic_emb = txtai.Embeddings()
+logger.info('start loading video_semantic_index')
+video_semantic_emb.load('./video_semantic_index')
+logger.info('finished loading video_semantic_index')
+config = video_semantic_emb.config.copy()
+config.pop('ids', None)
+logger.info(json.dumps(config, sort_keys=True, default=str, indent=2))
+
+# keyword index of channels
 channel_emb = txtai.Embeddings()
 logger.info('start loading channel_index')
 channel_emb.load('./channel_index')
@@ -25,6 +36,7 @@ config = channel_emb.config.copy()
 config.pop('ids', None)
 logger.info(json.dumps(config, sort_keys=True, default=str, indent=2))
 
+# autocomplete
 logger.info('start loading autocomplete_quieries.json')
 with open('./autocomplete_quieries.json') as json_file:
     autocomplete_titles = json.load(json_file)
@@ -34,8 +46,8 @@ autocomplete = AutoComplete(
 )
 logger.info('finished loading autocomplete_quieries.json')
 
+# Fix layout (keyboard en>ru)
 nltk.download('popular')
-
 en_to_ru_mapping = {
     'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г',
     'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х', ']': 'ъ', 'a': 'ф', 's': 'ы',
@@ -43,7 +55,6 @@ en_to_ru_mapping = {
     ';': 'ж', "'": 'э', 'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и',
     'n': 'т', 'm': 'ь', ',': 'б', '.': 'ю', '/': '.', '`': 'ё',
 }
-ru_to_en_mapping = {v: k for k, v in en_to_ru_mapping.items()}
 
 
 def detect_and_correct_layout(query):
@@ -72,9 +83,15 @@ def prepare_query(query: str):
 
 def search_videos(query: str, limit: int = 10):
     query = prepare_query(query)
+    # keyword search
     results = video_emb.search(
         f'select id, text, v_year_views, v_pub_datetime, score from txtai where similar("{query}") order by score desc, v_pub_datetime desc limit {limit}')
     logger.info(f'search videos: query={query}, limit={limit}, results={results}')
+    if len(results) == 0:
+        # semantic search
+        results = video_semantic_emb.search(
+            f'select id, text, v_year_views, v_pub_datetime, score from txtai where similar("{query}") order by score desc, v_pub_datetime desc limit {limit}')
+        logger.info(f'search videos: query={query}, limit={limit}, results={results}')
     return list(map(lambda r: {
         'id': r['id'],
         'title': r['text'],
