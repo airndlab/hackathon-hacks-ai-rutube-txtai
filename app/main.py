@@ -14,10 +14,11 @@ async def status():
 async def search(request: Request):
     json = await request.json()
     query = json['query']
-    size = json['size']
+    video_size = json['size']
+    channels_size = json['channels']
     return {
-        "results": index.search_videos(query, size),
-        "channels": index.search_channels(query, size)
+        "results": index.search_videos(query, video_size),
+        "channels": index.search_channels(query, channels_size)
     }
 
 
