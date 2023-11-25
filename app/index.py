@@ -25,7 +25,10 @@ logger.info(json.dumps(config, sort_keys=True, default=str, indent=2))
 logger.info('start loading autocomplete_quieries.json')
 with open('./autocomplete_quieries.json') as json_file:
     autocomplete_titles = json.load(json_file)
-autocomplete = AutoComplete(words=autocomplete_titles, valid_chars_for_string="абвгдеёжзийклмнопрстуфхцчшщьЪыэюя")
+autocomplete = AutoComplete(
+    words=autocomplete_titles,
+    valid_chars_for_string="абвгдеёжзийклмнопрстуфхцчшщьъыэюяabcdefghijklmnopqrstuvwxyz"
+)
 logger.info('finished loading autocomplete_quieries.json')
 
 
