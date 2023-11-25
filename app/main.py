@@ -17,8 +17,13 @@ class SearchRequest(BaseModel):
 
 
 @app.post("/search")
-async def root(search_request: SearchRequest):
+async def search(search_request: SearchRequest):
     return {
         "results": index.search_videos(search_request.query, search_request.size),
         "channels": index.search_channels(search_request.query, search_request.size)
     }
+
+
+@app.get("/suggests/{query}")
+async def suggests(query: str, max_cost: int, size: int = 10):
+    return list(map(lambda suggest: {"title": suggest}, index.search_suggests(query, max_cost, size)))

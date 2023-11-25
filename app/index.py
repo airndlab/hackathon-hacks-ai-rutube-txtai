@@ -2,6 +2,7 @@ import json
 import logging
 
 import txtai
+from fast_autocomplete import AutoComplete
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,12 @@ logger.info('finished loading channel_index')
 config = channel_emb.config.copy()
 config.pop('ids', None)
 logger.info(json.dumps(config, sort_keys=True, default=str, indent=2))
+
+logger.info('start loading autocomplete_quieries.json')
+with open('./autocomplete_quieries.json') as json_file:
+    autocomplete_titles = json.load(json_file)
+autocomplete = AutoComplete(words=autocomplete_titles, valid_chars_for_string="абвгдеёжзийклмнопрстуфхцчшщьЪыэюя")
+logger.info('finished loading autocomplete_quieries.json')
 
 
 def search_videos(query: str, limit: int = 10):
@@ -43,3 +50,9 @@ def search_channels(query: str, limit: int = 10):
         'title': r['text'],
         'type': r['v_channel_type']
     }, results))
+
+
+def search_suggests(query: str, max_cost: int, limit: int):
+    results = autocomplete.search(word=query, max_cost=max_cost, size=limit)
+    logger.info(f'query={query}, max_cost={max_cost}, limit={limit}, results={results}')
+    return results
