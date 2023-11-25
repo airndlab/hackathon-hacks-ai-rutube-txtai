@@ -7,12 +7,12 @@ authors = ["AI RnD Lab Developers"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.8"
 uvicorn = "0.23.2"
 fastapi = "0.103.2"
 txtai = "6.2.0"
-fast-autocomplete = "^0.9.0"
-levenshtein = "^0.23.0"
+fast-autocomplete = "0.9.0"
+levenshtein = "0.23.0"
 
 [build-system]
 requires = ["poetry-core"]
