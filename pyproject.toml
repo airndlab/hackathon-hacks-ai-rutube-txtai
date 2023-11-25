@@ -13,6 +13,7 @@ fastapi = "0.103.2"
 txtai = "6.2.0"
 fast-autocomplete = "0.9.0"
 levenshtein = "0.23.0"
+nltk = "^3.8.1"
 
 [build-system]
 requires = ["poetry-core"]

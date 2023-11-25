@@ -1,8 +1,11 @@
 import json
 import logging
+import re
 
+import nltk
 import txtai
 from fast_autocomplete import AutoComplete
+from nltk.corpus import stopwords
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +34,24 @@ autocomplete = AutoComplete(
 )
 logger.info('finished loading autocomplete_quieries.json')
 
+nltk.download('popular')
+
+
+def clean_query(query: str):
+    query = re.sub("[^а-яА-ЯЁё0-9a-zA-Z ]", "", query)
+    query = re.sub(r'[^\w\s]', '', query.lower())
+    tokens = nltk.word_tokenize(query)
+    tokens = [word for word in tokens if word not in stopwords.words('russian')]
+    result = ' '.join(tokens)
+    logger.info(f'clean text: query={query}, result={result}')
+    return result
+
 
 def search_videos(query: str, limit: int = 10):
+    query = clean_query(query)
     results = video_emb.search(
         f'select id, text, v_year_views, v_pub_datetime, score from txtai where similar("{query}") order by score desc, v_pub_datetime desc limit {limit}')
-    logger.info(f'query={query}, limit={limit}, results={results}')
+    logger.info(f'search videos: query={query}, limit={limit}, results={results}')
     return list(map(lambda r: {
         'id': r['id'],
         'title': r['text'],
@@ -45,10 +61,11 @@ def search_videos(query: str, limit: int = 10):
 
 
 def search_channels(query: str, limit: int = 10):
+    query = clean_query(query)
     results = channel_emb.search(
         f'select text, v_channel_type, score from txtai where similar("{query}") order by score desc limit {limit}'
     )
-    logger.info(f'query={query}, limit={limit}, results={results}')
+    logger.info(f'search channels: query={query}, limit={limit}, results={results}')
     return list(map(lambda r: {
         'title': r['text'],
         'type': r['v_channel_type']
@@ -57,5 +74,5 @@ def search_channels(query: str, limit: int = 10):
 
 def search_suggests(query: str, max_cost: int, limit: int):
     results = autocomplete.search(word=query, max_cost=max_cost, size=limit)
-    logger.info(f'query={query}, max_cost={max_cost}, limit={limit}, results={results}')
+    logger.info(f'search suggests: query={query}, max_cost={max_cost}, limit={limit}, results={results}')
     return results
