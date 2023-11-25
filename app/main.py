@@ -1,5 +1,4 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Request
 
 from app import index
 
@@ -11,16 +10,14 @@ async def status():
     return {"status": "UP"}
 
 
-class SearchRequest(BaseModel):
-    query: str
-    size: int
-
-
 @app.post("/search")
-async def search(search_request: SearchRequest):
+async def search(request: Request):
+    json = await request.json()
+    query = json['query']
+    size = json['size']
     return {
-        "results": index.search_videos(search_request.query, search_request.size),
-        "channels": index.search_channels(search_request.query, search_request.size)
+        "results": index.search_videos(query, size),
+        "channels": index.search_channels(query, size)
     }
 
 
