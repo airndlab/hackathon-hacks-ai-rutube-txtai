@@ -51,10 +51,6 @@ def detect_and_correct_layout(query):
         result = ''.join(en_to_ru_mapping.get(ch, ch) for ch in query)
         logger.info(f'fix layout: query={query}, result={result}')
         return result
-    elif any(char in ru_to_en_mapping for char in query):
-        result = ''.join(ru_to_en_mapping.get(ch, ch) for ch in query)
-        logger.info(f'fix layout: query={query}, result={result}')
-        return result
     return query
 
 
